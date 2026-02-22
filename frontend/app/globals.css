@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #f5f8f8;
+    --foreground: #0f172a;
+    --primary: #25c0f4;
+    --background-dark: #101e22;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: #101e22;
+      --foreground: #f1f5f9;
+    }
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+}
+
+.glass {
+  background: rgba(16, 30, 34, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(37, 192, 244, 0.1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(37, 192, 244, 0.4);
+  background: rgba(37, 192, 244, 0.05);
+}
+
+.hero-gradient {
+  background: radial-gradient(circle at 50% 50%, rgba(37, 192, 244, 0.15) 0%, transparent 70%);
+}
