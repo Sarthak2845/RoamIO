@@ -1,11 +1,58 @@
 "use client";
 
-import { MdPerson, MdMail, MdLock, MdVisibility, MdArrowForward, MdRocketLaunch } from "react-icons/md";
-import { FaGoogle, FaApple } from "react-icons/fa";
+import { MdPerson, MdMail, MdLock, MdVisibility, MdArrowForward } from "react-icons/md";
 import Image from "next/image";
 import Icon from "@/components/Icon";
-
+import { useState } from "react";
+import axios from "axios";
+import { IoMdEyeOff } from "react-icons/io";
+type Register = {
+  name: string;
+  email: string;
+  password: string;
+};
+const API = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000/api";
 export default function SignupPage() {
+  const [formData, setFormData] = useState<Register>({
+    name: "",
+    email: "",
+    password: ""
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await axios.post(`${API}/auth/register`,{
+        name:formData.name,
+        email:formData.email,
+        password:formData.password
+      })
+
+      if (response.data.success) {
+        window.location.href = "/login";
+      } else {
+        setError(response.data.error || "Registration failed");
+      }
+    } catch (err: any) {
+      console.error('Registration error:', err.response?.data);
+      setError(err.response?.data?.error || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
   return (
     <div className="relative flex min-h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-950">
       {/* Left Side: Visual */}
@@ -18,7 +65,7 @@ export default function SignupPage() {
           src="https://images.pexels.com/photos/2662116/pexels-photo-2662116.jpeg"
         />
         <div className="relative z-20 flex flex-col justify-between p-16 h-full">
-          <Icon/>
+          <Icon />
           <div className="max-w-md">
             <h1 className="text-5xl font-black leading-tight text-white mb-6">
               The Next Frontier <br />
@@ -49,20 +96,29 @@ export default function SignupPage() {
           />
         </div>
 
-        <div className="w-full max-w-[480px] z-10">
+        <div className="w-full max-w-120 z-10">
           <div className="backdrop-blur-md bg-slate-900/60 border border-blue-500/10 p-8 sm:p-10 rounded-xl shadow-2xl">
             <div className="mb-10 text-center lg:text-left">
               <h2 className="text-3xl font-bold text-slate-100 mb-2">Create Account</h2>
               <p className="text-slate-400">Join 50,000+ pioneers exploring the world.</p>
             </div>
 
-            <form className="space-y-5">
+            <form className="space-y-5" onSubmit={handleSubmit}>
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
               {/* Full Name */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-slate-300 px-1">Full Name</label>
                 <div className="relative flex items-center">
                   <MdPerson className="absolute left-4 text-slate-500" size={20} />
                   <input
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
                     className="w-full pl-12 pr-4 py-3.5 bg-slate-950/50 border border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 rounded-lg text-slate-100 placeholder:text-slate-600 transition-all outline-none"
                     placeholder="John Doe"
                     type="text"
@@ -76,6 +132,10 @@ export default function SignupPage() {
                 <div className="relative flex items-center">
                   <MdMail className="absolute left-4 text-slate-500" size={20} />
                   <input
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
                     className="w-full pl-12 pr-4 py-3.5 bg-slate-950/50 border border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 rounded-lg text-slate-100 placeholder:text-slate-600 transition-all outline-none"
                     placeholder="pioneer@roamio.io"
                     type="email"
@@ -89,22 +149,28 @@ export default function SignupPage() {
                 <div className="relative flex items-center">
                   <MdLock className="absolute left-4 text-slate-500" size={20} />
                   <input
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
                     className="w-full pl-12 pr-12 py-3.5 bg-slate-950/50 border border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 rounded-lg text-slate-100 placeholder:text-slate-600 transition-all outline-none"
                     placeholder="••••••••"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
+                    current-password="current-password"
                   />
-                  <button className="absolute right-4 text-slate-500 hover:text-slate-300 transition-colors" type="button">
-                    <MdVisibility size={20} />
+                  <button onClick={() => setShowPassword(!showPassword)} className="absolute right-4 text-slate-500 hover:text-slate-300 transition-colors" type="button">
+                    {showPassword ? <IoMdEyeOff size={20} /> : <MdVisibility size={20} />}
                   </button>
                 </div>
               </div>
 
               {/* Submit Button */}
               <button
-                className="w-full bg-blue-500 hover:bg-blue-600 text-black font-bold py-4 rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] transition-all flex items-center justify-center gap-2 mt-4"
+                disabled={loading}
+                className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 disabled:cursor-not-allowed text-black font-bold py-4 rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.4)] hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] transition-all flex items-center justify-center gap-2 mt-4"
                 type="submit"
               >
-                <span>CREATE ACCOUNT</span>
+                <span>{loading ? "CREATING..." : "CREATE ACCOUNT"}</span>
                 <MdArrowForward size={20} />
               </button>
             </form>
@@ -119,18 +185,6 @@ export default function SignupPage() {
             </p>
           </div>
 
-          {/* Terms */}
-          <p className="mt-6 text-center text-xs text-slate-600 px-8">
-            By joining, you agree to RoamIO&apos;s{" "}
-            <a className="underline hover:text-slate-400" href="#">
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a className="underline hover:text-slate-400" href="#">
-              Privacy Policy
-            </a>
-            .
-          </p>
         </div>
       </div>
     </div>
