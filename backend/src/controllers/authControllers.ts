@@ -1,6 +1,7 @@
 import type { Response, Request } from "express"
 import logger from "../utils/logger.js"
 import User from "../models/Users.models.js"
+import UserPreference from "../models/UserPrefrance.models.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
@@ -52,12 +53,18 @@ export const LoginUser = async (req: Request, res: Response) => {
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET!, { expiresIn: '1d' });
 
-        res.cookie('token', token, {
+        const isProd = process.env.NODE_ENV === 'production';
+        const cookieOptions = {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'none',
+            secure: isProd,
+            sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
             maxAge: 24 * 60 * 60 * 1000
-        });
+        };
+
+        res.cookie('token', token, cookieOptions);
+
+        const hasPreferences = await UserPreference.exists({ userId: user._id });
+        res.cookie('hasPreferences', hasPreferences ? 'true' : 'false', { ...cookieOptions, httpOnly: false });
 
         res.status(200).send({
             success: true,

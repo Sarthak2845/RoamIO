@@ -30,16 +30,18 @@ export default function LoginPage() {
       const response = await axios.post(`${API}/auth/login`, {
         email: formData.email,
         password: formData.password
-      })
+      }, { withCredentials: true })
       if (response.data.success) {
-        window.location.href = "/dashboard"
+        window.location.href = "/dashboard";
       } else {
-        setError(response.data.error || "Login failed")
+        setError(response.data.error || "Login failed");
       }
 
     } catch (err: any) {
-      console.error('Login error:', err.response?.data);
-      setError(err.response?.data?.error || "Something went wrong. Please try again.");
+      console.error('Login error full:', err);
+      console.error('Login error message:', err?.message);
+      console.error('Login error response:', err?.response?.data);
+      setError(err?.response?.data?.error || err?.message || "Something went wrong. Please try again.");
     }
     finally {
       setLoading(false)
