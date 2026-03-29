@@ -27,36 +27,41 @@ export const getPlaces = tool(
 
       const places = response.data.results.slice(0, 5);
 
-      const formattedPlaces = places.map((place: any, index: number) => {
+      // ✅ Structured JSON for UI
+      const formattedPlaces = places.map((place: any) => {
         const photoReference = place.photos?.[0]?.photo_reference;
 
-        const photoUrl = photoReference
-          ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${apiKey}`
-          : "No photo available";
-
-        return `${index + 1}. ${place.name}
-Rating: ${place.rating ?? "N/A"}
-Address: ${place.formatted_address}
-Photo: ${photoUrl}`;
+        return {
+          name: place.name,
+          rating: place.rating ?? null,
+          address: place.formatted_address,
+          image: photoReference
+            ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${apiKey}`
+            : null,
+        };
       });
 
+      // ✅ Fixed logger (no more nulls)
       logger.info("Places data fetched successfully", {
         city,
-        places: places.map((p: any) => { p.name}),
+        places: formattedPlaces.map((p) => p.name),
       });
 
-      return `Top tourist attractions in ${city}:\n\n${formattedPlaces.join(
-        "\n\n"
-      )}`;
-    } catch (error) {
-      logger.error("Failed to fetch places data", { city, error });
+      return formattedPlaces;
+    } catch (error: any) {
+      logger.error("Failed to fetch places data", {
+        city,
+        error: error.message,
+      });
 
-      return `Could not find tourist attractions for ${city}. Please ensure the city name is correct.`;
+      // ✅ Always return consistent format
+      return [];
     }
   },
   {
     name: "getPlaces",
-    description: "Get top tourist attractions for a city with ratings and photos",
+    description:
+      "Get top tourist attractions for a city with name, rating, address, and image",
     schema: placesSchema,
   }
 );
